@@ -2,6 +2,7 @@
 import re
 import urllib2
 
+
 class GetUID:
     def __init__(self, nick):
         self.url = "https://osu.ppy.sh/u/%s" % nick
@@ -25,18 +26,20 @@ class GetUID:
             return str(-1)
 
     def check_cache(self):
+        cache = []
         try:
             with open("cache", "r") as h:
                 cache = h.read().split("\n")
         except IOError:
             open("cache", 'a').close()
-            cache = []
+
         cache_d = {}
         for i in xrange(len(cache)):
             try:
                 cache_d.update({cache[i].split(":")[0]: cache[i].split(":")[1]})
             except IndexError:
                 pass
+
         if self.nick in cache_d.keys():
             return cache_d[self.nick]
         return False
@@ -49,6 +52,7 @@ class GetUID:
         except IOError:
             open("cache", 'a').close()
             cache = []
+
         if not(formatted_text in cache):
             with open("cache", "a") as f:
                 f.write("%s\n" % formatted_text)
