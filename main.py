@@ -10,6 +10,7 @@ import gzip
 import json
 import time
 import ConfigParser
+import datetime
 from jinja2 import Environment, FileSystemLoader
 from os import listdir
 from os.path import isfile, join
@@ -77,6 +78,10 @@ class Main:
             year - year to be generated
             month - month to be generated
         """
+        if year == "current":
+            year = datetime.datetime.now().strftime("%Y")
+        if month == "current":
+            month = datetime.datetime.now().strftime("%m")
         test = re.compile("(%s)\-(%s)\-\d+\.\w+" % (year, month), re.IGNORECASE)
         self.onlyfiles = filter(test.search, self.onlyfiles)
         #print(self.onlyfiles)
@@ -256,7 +261,7 @@ class Main:
             most_active=most_active, runner_ups=runner_ups, being=being,
             urls_used=most_urls, total=total_num, activity_graph=self.activity_graph) # All necessary variables goes here
 
-        with open("%s.html" % self.name, "wb") as fh:
+        with open(self.config.get("Files", "save_as") % self.name, "wb") as fh:
             fh.write(output_from_parsed_template.encode("utf-8"))
         with open("json/%s.json" % self.name, "w") as fh:
             json.dump(
