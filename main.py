@@ -46,7 +46,8 @@ class Main:
         self.file = None
         self.most_active = {}
         self.logs_path = self.config.get("Files", "logs_path")
-        self.channel = self.config.get("Files", "channel")
+        print(sys.argv[1:])
+        self.channel = sys.argv[2]
         self.generate_to = self.config.get("Files", "generate_to")
         # per user statistics
         self.user_question = {}
