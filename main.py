@@ -261,14 +261,14 @@ class Main:
             most_active=most_active, runner_ups=runner_ups, being=being,
             urls_used=most_urls, total=total_num, activity_graph=self.activity_graph) # All necessary variables goes here
 
-        with open(self.config.get("Files", "save_as") % self.name, "wb") as fh:
+        with open("%s%s" % (self.config.get("Files", "generate_to"), (self.config.get("Files", "save_as") % self.name)), "wb") as fh:
             fh.write(output_from_parsed_template.encode("utf-8"))
-        with open("json/%s.json" % self.name, "w") as fh:
+        """with open("json/%s.json" % self.name, "w") as fh:
             json.dump(
                 {"name": self.name, "total_numbers": total_num, "most_active": most_active,
                 "runner_ups": runner_ups, "being": being, "most_used_urls": most_urls,
                 "activity_graph": self.activity_graph}, fh)
-
+        """
 
 start_time = time.time()
 
