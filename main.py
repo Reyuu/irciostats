@@ -35,7 +35,7 @@ class cd:
 
 class Main:
     def __init__(self, path):
-        self.env = Environment(loader=FileSystemLoader('/var/www/templates'))
+        self.env = Environment(loader=FileSystemLoader('.'))
         self.template = self.env.get_template('template.html')
         self.file = None
         self.most_active = {}
@@ -56,6 +56,16 @@ class Main:
         self.name = path.split("/")[-1]
         self.file = []
         self.onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
+        self.filter_it()
+
+    def filter_it(self, year="\d+", month="\d+"):
+        """
+            year - year to be generated
+            month - month to be generated
+        """
+        test = re.compile("(%s)\-(%s)\-\d+\.\w+" % (year, month), re.IGNORECASE)
+        self.onlyfiles = filter(test.search, self.onlyfiles)
+        #print(self.onlyfiles)
 
     def bulk_lines(self):
         def test_if_gz(filename):
@@ -232,9 +242,9 @@ class Main:
             most_active=most_active, runner_ups=runner_ups, being=being,
             urls_used=most_urls, total=total_num, activity_graph=self.activity_graph) # All necessary variables goes here
 
-        with open("/var/www/alltime/%s.html" % self.name, "wb") as fh:
+        with open("%s.html" % self.name, "wb") as fh:
             fh.write(output_from_parsed_template.encode("utf-8"))
-        with open("/var/www/alltime/json/%s.json" % self.name, "w") as fh:
+        with open("json/%s.json" % self.name, "w") as fh:
             json.dump(
                 {"name": self.name, "total_numbers": total_num, "most_active": most_active,
                 "runner_ups": runner_ups, "being": being, "most_used_urls": most_urls,
