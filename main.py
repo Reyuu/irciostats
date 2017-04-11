@@ -9,7 +9,7 @@ import cgi
 import gzip
 import json
 import time
-
+import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 from os import listdir
 from os.path import isfile, join
@@ -33,12 +33,21 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+"""
+TODO: handle more config inputs (ex. current_year, current_month)
+"""
+
 class Main:
-    def __init__(self, path):
-        self.env = Environment(loader=FileSystemLoader('.'))
+    def __init__(self):
+        self.config = ConfigParser.ConfigParser()
+        self.config.read(sys.argv[1])
+        self.env = Environment(loader=FileSystemLoader(self.config.get("Files", "template_dir")))
         self.template = self.env.get_template('template.html')
         self.file = None
         self.most_active = {}
+        self.logs_path = self.config.get("Files", "logs_path")
+        self.channel = self.config.get("Files", "channel")
+        self.generate_to = self.config.get("Files", "generate_to")
         # per user statistics
         self.user_question = {}
         self.user_exclamation = {}
@@ -52,11 +61,15 @@ class Main:
         self.activity_graph = [0]*24
         # urls
         self.urls = {}
-        self.path = path
-        self.name = path.split("/")[-1]
+        #self.path = path
+        self.name = self.channel
         self.file = []
+        self.yearly = False
+        self.year = self.config.get("Date", "year")
+        self.month = self.config.get("Date", "month")
+        path = "%s%s" % (self.logs_path, self.channel)
         self.onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
-        self.filter_it()
+        self.filter_it(year=self.config.get("Date", "year"), month=self.config.get("Date", "month"))
 
     def filter_it(self, year="\d+", month="\d+"):
         """
@@ -71,10 +84,10 @@ class Main:
         def test_if_gz(filename):
             if (filename.split(".")[::-1][0] == "gz"):
                 # print("gz")
-                return gzip.open("%s/%s" % (sys.argv[1], filename))
+                return gzip.open("%s%s/%s" % (self.logs_path, self.channel, filename))
             else:
                 # print("log")
-                return open("%s/%s" % (sys.argv[1], filename))
+                return open("%s%s/%s" % (self.logs_path, self.channel, filename))
         for filename in self.onlyfiles:
             lines = (line.rstrip('\n') for line in test_if_gz(filename))
             for index, line in enumerate(lines):
@@ -186,7 +199,7 @@ class Main:
 
     def get_random_line(self, nick):
         mine = u""
-        with cd(sys.argv[1]):
+        with cd("%s%s" % (self.logs_path, self.channel)):
             base = "<\W%s>" % re.escape(nick)
             user_input = "zgrep \"%s\" * | shuf -n 1" % base
             mine = subprocess.Popen("%s" % user_input, shell=True, stdout=subprocess.PIPE).stdout.read()[20:].decode("utf-8")
@@ -253,7 +266,7 @@ class Main:
 
 start_time = time.time()
 
-a = Main(str(sys.argv[1]))
+a = Main()
 a.bulk_lines()
 a.save_page()
 
