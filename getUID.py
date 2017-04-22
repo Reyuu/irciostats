@@ -1,10 +1,11 @@
 # coding=utf-8
 import re
 import urllib2
-
+import urllib
 
 class GetUID:
     def __init__(self, nick):
+        nick = urllib.quote_plus(nick)
         self.url = "https://osu.ppy.sh/u/%s" % nick
         self.nick = nick
         cache_check = self.check_cache()
