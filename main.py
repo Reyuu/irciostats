@@ -1,7 +1,6 @@
 # coding=utf-8
 import re
 import random
-import sys
 import getUID
 import subprocess
 import os
@@ -11,7 +10,11 @@ import json
 import time
 import ConfigParser
 import datetime
-from jinja2 import Environment, FileSystemLoader
+import sys
+from imp import reload
+reload(sys)
+sys.setdefaultencoding('utf-8')
+#from jinja2 import Environment, FileSystemLoader
 from os import listdir
 from os.path import isfile, join
 
@@ -42,8 +45,8 @@ class Main:
     def __init__(self):
         self.config = ConfigParser.ConfigParser()
         self.config.read(sys.argv[1])
-        self.env = Environment(loader=FileSystemLoader(self.config.get("Files", "template_dir")))
-        self.template = self.env.get_template('template.html')
+        #self.env = Environment(loader=FileSystemLoader(self.config.get("Files", "template_dir")))
+        #self.template = self.env.get_template('template.html')
         self.file = None
         self.most_active = {}
         self.logs_path = self.config.get("Files", "logs_path")
@@ -124,7 +127,7 @@ class Main:
             url_r = re.findall("(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)", line)
             time = re.match("(\d{2}:\d{2})", line);
 
-            if not(m.group(2) == "TheKubaX"):
+            if not(m.group(2) in ["TheKubaX", "-_Mia"]):
                 try:
                     time = time.group(1).split(":")[0]
                     self.activity_graph[int(time)] += 1
@@ -217,8 +220,8 @@ class Main:
         most_active = []
         for i in my_keys:
             item = self.most_active[i]
-            uid = getUID.GetUID(i).uid
-            most_active += [(i, item.number, cgi.escape(self.get_random_line(i)), uid)]
+            uid = getUID.get_user_id(i)
+            most_active += [(i, item.number, cgi.escape("> ".join(self.get_random_line(i).split("> ")[1:])), uid)]
         runner_ups = self.get_runner_ups_active()
 
         def get_contents(what):
@@ -257,18 +260,19 @@ class Main:
 
         total_num = [self.total_question.number, self.total_exclamation.number, self.total_actions.number, self.total_givemodes.number]
 
-        output_from_parsed_template = self.template.render(name=self.name,
-            most_active=most_active, runner_ups=runner_ups, being=being,
-            urls_used=most_urls, total=total_num, activity_graph=self.activity_graph) # All necessary variables goes here
+        #output_from_parsed_template = self.template.render(name=self.name,
+        #    most_active=most_active, runner_ups=runner_ups, being=being,
+        #    urls_used=most_urls, total=total_num, activity_graph=self.activity_graph) # All necessary variables goes here
 
-        with open("%s%s" % (self.config.get("Files", "generate_to"), (self.config.get("Files", "save_as") % self.name)), "wb") as fh:
-            fh.write(output_from_parsed_template.encode("utf-8"))
-        """with open("json/%s.json" % self.name, "w") as fh:
+        #with open("%s%s" % (self.config.get("Files", "generate_to"), (self.config.get("Files", "save_as") % self.name)), "wb") as fh:
+        #    fh.write(output_from_parsed_template.encode("utf-8"))
+        with open("%sjson/%s.json" % (self.config.get("Files", "generate_to"), self.name), "w") as fh:
+            fh.write("")
             json.dump(
                 {"name": self.name, "total_numbers": total_num, "most_active": most_active,
                 "runner_ups": runner_ups, "being": being, "most_used_urls": most_urls,
                 "activity_graph": self.activity_graph}, fh)
-        """
+        
 
 start_time = time.time()
 
